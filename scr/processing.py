@@ -1,14 +1,12 @@
-from poetry.installation.operations.operation import Operation
 
-from widget import get_date
 def filter_by_state(operations: list[dict], state: str = 'EXECUTED') -> list[dict]:
-    '''Фильтр списка по операциям
+    """ Фильтр списка по операциям
     Args:
     operations: Список
-    словарей сданными операций state: Статус для фильтрации(поумолчанию'EXECUTED')
+    словарей сданными операций state: Статус для фильтрации(по умолчанию' EXECUTED ')
 
     Returns:
-    operation_list[dict]: Отфильтрованный список операций '''
+    operation_list[dict]: Отфильтрованный список операций """
     operation_list=[]
     if not operations:
         return operation_list
@@ -20,8 +18,8 @@ def filter_by_state(operations: list[dict], state: str = 'EXECUTED') -> list[dic
 
 
 def sort_by_date (get_date, sorting:str = "убывание"):
-    '''Сортировка списка дат по убыванию\возрастанию с выводом нового списка дат'''
-    sorted_date=[]
+    """Сортировка списка дат по убыванию\возрастанию с выводом нового списка дат"""
+    sorted_date = []
     if "убывание" in sorting:
         sorted_date = get_date.sort(reverse=True)
     else:
