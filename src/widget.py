@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Callable
 
-from masks import get_mask_account , get_mask_card_number
+from .masks import get_mask_account, get_mask_card_number
 
 
 def get_date(date_str):
