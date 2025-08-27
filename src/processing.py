@@ -1,21 +1,19 @@
 from typing import List, Dict, Any
 
 
-def filter_by_state(
-    operations: List[Dict[str, Any]], state: str = "EXECUTED"
-) -> List[Dict[str, Any]]:
+def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -> List[Dict[str, Any]]:
     """Фильтр списка по операциям
     Args:
-    operations: Список
-    словарей сданными операций state: Статус для фильтрации(по умолчанию' EXECUTED ')
+        operations: Список словарей с данными операций
+        state: Статус для фильтрации (по умолчанию 'EXECUTED')
 
     Returns:
-    operation_list: Отфильтрованный список операций"""
+        operation_list: Отфильтрованный список операций"""
     operation_list: List[Dict[str, Any]] = []
     if not operations:
         return operation_list
     for operation in operations:
-        if state == "EXECUTED":
+        if operation.get('state') == state:
             operation_list.append(operation)
     return operation_list
 

@@ -14,7 +14,7 @@ def get_mask_card_number(card_info: str) -> str:
 def get_mask_account(account_info: str) -> str:
     """Функция, которая возвращает строку после ввода аккаунта"""
     parts = account_info.split()
+    account_type = ' '.join(parts[:-1])
     account_number = parts[-1]
-    masked_acc = f"**{account_number[:-4]}"
-    account_type = " ".join(parts[:-1])
-    return f"{account_type} {masked_acc}"
+    masked_number = '**' + account_number[-4:]
+    return f"{account_type} {masked_number}"
