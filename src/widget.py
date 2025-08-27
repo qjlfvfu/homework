@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Callable
+
 from .masks import get_mask_account, get_mask_card_number
+
 
 def get_date(date_str: str) -> str:
     """Функция форматирования даты с поддержкой разных форматов"""
@@ -10,7 +12,7 @@ def get_date(date_str: str) -> str:
     formats = [
         "%Y-%m-%dT%H:%M:%S.%f",  # Формат с миллисекундами: 2023-12-31T23:59:59.999
         "%Y-%m-%dT%H:%M:%S",  # Формат без миллисекунд: 2023-12-31T23:59:59
-        "%Y-%m-%d"  # Только дата: 2023-12-31
+        "%Y-%m-%d",  # Только дата: 2023-12-31
     ]
     # Пробуем распарсить дату в каждом формате
     for fmt in formats:
