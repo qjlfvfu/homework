@@ -19,6 +19,6 @@ def get_mask_account(account_info: str) -> str:
     account_type = " ".join(parts[:-1])
     account_number = parts[-1]
     masked_number = "**" + account_number[-4:]
-    if len(account_number)< 4:
-        masked_number= (len(account_number)-1)*"*" + account_number[-1:]
+    if len(account_number) < 4:
+        masked_number = (len(account_number) - 1) * "*" + account_number[-1:]
     return f"{account_type} {masked_number}"

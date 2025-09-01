@@ -1,5 +1,7 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from src.processing import filter_by_state
+
 
 def test_filter_by_state(test_operations: List[Dict[str, Any]]) -> None:
     """Тест фильтрации операций по статусу EXECUTED"""
