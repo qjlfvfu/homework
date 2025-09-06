@@ -1,7 +1,9 @@
-from typing import List, Dict, Any, Generator
+from typing import Any, Dict, Generator, List
 
 
-def filter_by_currency(transactions: List[Dict[str, Any]], currency_code: str) -> Generator[Dict[str, Any], None, None]:
+def filter_by_currency(
+    transactions: List[Dict[str, Any]], currency_code: str
+) -> Generator[Dict[str, Any], None, None]:
     """
     Генератор, который фильтрует транзакции по коду валюты.
     Поочередно выдает транзакции, где валюта операции соответствует заданной.
