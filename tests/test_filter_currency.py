@@ -1,5 +1,3 @@
-
-
 from generators.filter_by_currency import filter_by_currency
 
 # Тестовые данные

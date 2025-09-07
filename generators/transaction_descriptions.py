@@ -1,9 +1,12 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, Generator, List, Optional
 
 
-def transaction_descriptions(transactions: List[Dict[str, Any]]) -> Any:
+def transaction_descriptions(transactions: List[Dict[str, Any]]) -> Generator[Optional[str], None, None]:
     """Фильтр списка по описанию транзакции"""
-    for transaction in transactions:
-        transactions = [{"id": "id", "transaction": transaction, "currency": "currency"}]
-        description = transaction.get("transaction", transaction)
-        yield description
+    try:
+        for transaction in transactions:
+            description = transaction.get("description")
+            yield description
+    except Exception as e:
+        print(f"Ошибка при обработке транзакций: {e}")
+        # Генератор автоматически вызовет StopIteration при выходе из функции
