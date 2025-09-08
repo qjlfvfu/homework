@@ -1,4 +1,4 @@
-from generators.transaction_descriptions import transaction_descriptions
+from src.generators.transaction_descriptions import transaction_descriptions
 
 transactions = [
     {

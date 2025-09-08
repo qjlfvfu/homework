@@ -1,4 +1,4 @@
-from generators.filter_by_currency import filter_by_currency
+from src.generators import filter_by_currency
 
 # Тестовые данные
 transactions = [
