@@ -1,5 +1,5 @@
-from typing import Generator, Optional
 import random
+from typing import Generator
 
 
 def card_number_generator(start: int = 1, stop: int = 9999999999999999) -> Generator[str, None, None]:
