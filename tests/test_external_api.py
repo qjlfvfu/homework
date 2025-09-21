@@ -12,7 +12,7 @@ def test_convert_currency():
         print("✅ Конвертация успешна!")
         print(f"💵 Исходная сумма: {result['query']['amount']} {result['query']['from']}")
         print(f"🔁 Курс на дату: {result['date']}")
-        print(f"📊 Результаты:")
+        print("📊 Результаты:")
 
         # Если конвертируем в несколько валют
         if isinstance(result["result"], dict):
