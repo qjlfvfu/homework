@@ -3,7 +3,7 @@ import functools
 from typing import Any, Callable, Optional
 
 
-def log(func: Callable = None, *, filename: Optional[str] = "log_file.html") -> Callable:
+def log(func: Optional[Callable[..., Any]] = None, *, filename: Optional[str] = "log_file.html") -> Callable[..., Any]:
     """
     Декоратор для логирования в HTML-файл или консоль.
     Если filename=None - вывод в консоль, иначе в HTML-файл.
@@ -12,7 +12,7 @@ def log(func: Callable = None, *, filename: Optional[str] = "log_file.html") -> 
         return lambda f: log(f, filename=filename)
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = datetime.datetime.now()
         func_name = func.__name__
         timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S")

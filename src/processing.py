@@ -9,9 +9,9 @@ def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -
     return [operation for operation in operations if operation.get("state") == state]
 
 
-def sort_by_date(get_date: Any, sorting: Any = "убывание") -> List[Any]:
+def sort_by_date(get_date: Any, sorting: Any = "убывание") -> Any:
     """Сортировка списка дат по убыванию\возрастанию с выводом нового списка дат"""
-    sorted_date = []
+    sorted_date = [""]
     if "убывание" in sorting:
         sorted_date = get_date.sort(reverse=True)
     else:

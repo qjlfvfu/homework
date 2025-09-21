@@ -153,6 +153,8 @@ PythonProject4[Домашка]
 ├── generators # Файл с генераторами
 ├── requirements.txt # Зависимости 
 ├── scr # Основной файл с функциями
+    └──data # Файл с операциями 
 ├── README.md # Эта документация 
 └── tests # Файл с тестами функций
-    └──log_file.html # Лог Файл 
+    ├──log_file.html # Лог Файл 
+    └──confest.py # Файл с Фикстурами
