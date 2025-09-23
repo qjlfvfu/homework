@@ -7,13 +7,12 @@ API_KEY = os.getenv("API_KEY")
 
 
 
-def convert_currency(from_curr: str, to_currs: Any, date: Optional[str] = None) -> Any:
+def convert_currency(from_curr: str, to_currs: Any) -> Any:
     """
     Конвертирует валюту
     :param amount: сумма вводимая пользователем
     :param from_curr: из валюты (RUB)
     :param to_currs: в валюты вводимую пользователем (USD, EUR)
-    :param date: дата (опционально)
     """
 
     url = f"https://api.apilayer.com/exchangerates_data/convert?to={from_curr}&from={to_currs}&amount=1"
