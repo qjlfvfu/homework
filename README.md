@@ -154,6 +154,7 @@ PythonProject4[Домашка]
 ├── requirements.txt # Зависимости 
 ├── scr # Основной файл с функциями
     └──data # Файл с операциями 
+├── reader_scv_xlsx_files.py # Файл с функциями считывания файлов из exel и csv
 ├── README.md # Эта документация 
 └── tests # Файл с тестами функций
     ├──log_file.html # Лог Файл 

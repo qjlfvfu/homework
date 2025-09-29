@@ -1,59 +1,114 @@
-import pytest
-import pandas as pd
 import os
-from unittest.mock import patch, Mock
-from src.reader_scv_xlsx_files import reader_csv,reader_excel
-from src.decorators import log, write_log,close_html_log,init_html_log
+from unittest.mock import Mock, patch
+
+import pandas as pd
+
+from src.decorators import init_html_log, log
+from src.reader_scv_xlsx_files import reader_csv, reader_excel
 
 
 @log(filename="log_file_readers_test.html")
-def test_files_exist():
-    """Проверка существования файлов"""
-    assert os.path.exists("transactions.csv"), "Файл transactions.csv не найден"
-    assert os.path.exists("transactions_excel.xlsx"), "Файл transactions_excel.xlsx не найден"
-    return "Файлы существуют"
-
-@log(filename="log_file_readers_test.html")
-def test_reader_csv():
-    df=reader_csv()
-    print(df)
-
-
-@log(filename="log_file_readers_test.html")
-def test_reader_xlsx():
-    with patch('src.external_api.pd.read_excel') as mock_read_excel:
-        mock_df = Mock()
-        mock_read_excel.return_value = mock_df
-        result = reader_excel()
-        # Проверяем вызов
-        mock_read_excel.assert_called_once_with("transactions_excel.xlsx")
-
-        return "Тест пройден успешно"
-
-
-@log(filename="log_file_readers_test.html")
-def test_reader_xlsx():
-    result=reader_excel()
-    try:
-        return result
-    except Exception as e:
-        print(f"Ошибка {e}")
-
-@log(filename="log_file_readers_test.html")
-def test_reader_excel_print_output():
-    """Тест проверяет, что функция выводит DataFrame"""
-    with patch('pandas.read_excel') as mock_read_excel, \
-            patch('builtins.print') as mock_print:
+def test_reader_csv_basic():
+    """Базовый тест reader_csv"""
+    with patch("pandas.read_csv") as mock_read_csv:
         # Создаем mock DataFrame
         mock_df = Mock()
-        mock_read_excel.return_value = mock_df
+        mock_df.to_dict.return_value = [
+            {"amount": 100.50, "currency": "USD", "description": "Purchase"},
+            {"amount": 2500.00, "currency": "RUB", "description": "Payment"},
+        ]
+        mock_read_csv.return_value = mock_df
 
         # Вызываем функцию
-        reader_excel()
+        result = reader_csv("transactions.csv")
 
         # Проверяем вызовы
-        mock_read_excel.assert_called_once_with("transactions_excel.xlsx")
-        mock_print.assert_called_once_with(mock_df)
+        mock_read_csv.assert_called_once_with("transactions.csv")
+        mock_df.to_dict.assert_called_once_with("records")
+
+        # Проверяем результат
+        expected = [
+            {"amount": 100.50, "currency": "USD", "description": "Purchase"},
+            {"amount": 2500.00, "currency": "RUB", "description": "Payment"},
+        ]
+        assert result == expected
+
+
+@log(filename="log_file_readers_test.html")
+def test_reader_csv_empty():
+    """Тест reader_csv с пустым файлом"""
+    with patch("pandas.read_csv") as mock_read_csv:
+        mock_df = Mock()
+        mock_df.to_dict.return_value = []
+        mock_read_csv.return_value = mock_df
+
+        result = reader_csv("empty.csv")
+
+        assert result == []
+        assert isinstance(result, list)
+
+
+@log(filename="log_file_readers_test.html")
+def test_reader_excel_basic():
+    """Базовый тест reader_excel"""
+    with patch("pandas.read_excel") as mock_read_excel:
+        mock_df = Mock()
+        mock_df.to_dict.return_value = [
+            {"amount": 50.00, "currency": "EUR", "description": "Coffee"},
+            {"amount": 150.75, "currency": "USD", "description": "Lunch"},
+        ]
+        mock_read_excel.return_value = mock_df
+
+        result = reader_excel("transactions.xlsx")
+
+        mock_read_excel.assert_called_once_with("transactions.xlsx")
+        mock_df.to_dict.assert_called_once_with("records")
+
+        expected = [
+            {"amount": 50.00, "currency": "EUR", "description": "Coffee"},
+            {"amount": 150.75, "currency": "USD", "description": "Lunch"},
+        ]
+        assert result == expected
+
+
+@log(filename="log_file_readers_test.html")
+def test_reader_excel_different_columns():
+    """Тест reader_excel с разными колонками"""
+    with patch("pandas.read_excel") as mock_read_excel:
+        mock_df = Mock()
+        mock_df.to_dict.return_value = [
+            {"sum": 100, "curr": "USD", "date": "2024-01-01"},
+            {"sum": 200, "curr": "EUR", "date": "2024-01-02"},
+        ]
+        mock_read_excel.return_value = mock_df
+
+        result = reader_excel("different.xlsx")
+
+        expected = [
+            {"sum": 100, "curr": "USD", "date": "2024-01-01"},
+            {"sum": 200, "curr": "EUR", "date": "2024-01-02"},
+        ]
+        assert result == expected
+
+
+@log(filename="log_file_readers_test.html")
+def test_reader_excel_multiple_rows():
+    """Тест reader_excel с несколькими строками"""
+    with patch("pandas.read_excel") as mock_read_excel:
+        mock_df = Mock()
+        mock_df.to_dict.return_value = [
+            {"amount": 10.0, "currency": "USD"},
+            {"amount": 20.0, "currency": "EUR"},
+            {"amount": 30.0, "currency": "GBP"},
+            {"amount": 40.0, "currency": "RUB"},
+        ]
+        mock_read_excel.return_value = mock_df
+
+        result = reader_excel("multiple.xlsx")
+
+        assert len(result) == 4
+        assert all("amount" in item for item in result)
+        assert all("currency" in item for item in result)
 
 
 if __name__ == "__main__":
