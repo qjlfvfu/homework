@@ -1,11 +1,14 @@
 import os
+from typing import Any
 
 import requests
+from retry import retry
 
 API_KEY = os.getenv("API_KEY")
 
 
-def convert_currency(amount, from_currency, to_currency):
+@retry(exceptions=(ValueError, ConnectionError), tries=4, delay=2)
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> Any:
     """
     Конвертирует сумму из одной валюты в другую через API.
 
@@ -20,7 +23,7 @@ def convert_currency(amount, from_currency, to_currency):
 
     url = f"https://api.apilayer.com/exchangerates_data/convert?to={to_currency}&from={from_currency}&amount={amount}"
 
-    payload = {}
+    payload: dict[str, Any] = {}
     headers = {"apikey": "dRqlRls7sqb8Qtbmqo8abG2skNv6gwwt"}
 
     try:
@@ -40,7 +43,7 @@ def convert_currency(amount, from_currency, to_currency):
         return float(amount)
 
 
-def convert_from_rub(amount, to_currency):
+def convert_from_rub(amount: float, to_currency: str) -> Any:
     """
     Конвертирует сумму из рублей в указанную валюту через API.
 
@@ -58,7 +61,7 @@ def convert_from_rub(amount, to_currency):
     return convert_currency(amount, "RUB", to_currency)
 
 
-def convert_to_rub(transaction):
+def convert_to_rub(transaction: Any) -> Any:
     """
     Конвертирует сумму транзакции в рубли.
     """

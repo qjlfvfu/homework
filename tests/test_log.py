@@ -44,5 +44,5 @@ def test_log_decorator_file_output():
         os.remove(test_file)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     print("Запуск тестов ...")

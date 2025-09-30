@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[str, Any]]:
@@ -21,7 +21,7 @@ def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[st
     filtered_operations = []
 
     for operation in data:
-        description = operation.get('description')
+        description = operation.get("description")
         if isinstance(description, str):
             if re.findall(search, description, re.IGNORECASE):
                 filtered_operations.append(operation)
