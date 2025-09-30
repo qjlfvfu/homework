@@ -19,6 +19,7 @@ def test_log_decorator_console_output(capsys):
     assert "sample_function - Успешно завершено" in output
 
 
+@log(filename="log_file.html")
 def test_log_decorator_file_output():
     """Test log decorator file output"""
     test_file = "test_log.log"
@@ -43,6 +44,5 @@ def test_log_decorator_file_output():
         os.remove(test_file)
 
 
-@log
-def test_log_check():
-    return "Проверка работы записи в файл"
+if __name__=="__main__":
+    print("Запуск тестов ...")

@@ -1,7 +1,5 @@
-import os
 from unittest.mock import Mock, patch
 
-import pandas as pd
 
 from src.decorators import init_html_log, log
 from src.reader_scv_xlsx_files import reader_csv, reader_excel
