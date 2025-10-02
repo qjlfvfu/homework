@@ -13,8 +13,8 @@ def reader_csv(file_path: str) -> list[dict]:
     """
     df_csv = pd.read_csv(file_path)
     # Конвертируем DataFrame в список словарей
-    transactions = df_csv.to_dict("records")
-    return transactions
+    transactions_csv = df_csv.to_dict("records")
+    return transactions_csv
 
 
 def reader_excel(file_path: str) -> list[dict]:
@@ -29,5 +29,5 @@ def reader_excel(file_path: str) -> list[dict]:
     """
     df_xlsx = pd.read_excel(file_path)
     # Конвертируем DataFrame в список словарей
-    transactions = df_xlsx.to_dict("records")
-    return transactions
+    transactions_exel = df_xlsx.to_dict("records")
+    return transactions_exel
