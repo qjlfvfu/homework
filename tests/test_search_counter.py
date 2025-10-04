@@ -1,251 +1,236 @@
+import re
 import unittest
 from unittest.mock import patch
-import re
-from src.search_counter import process_bank_search  # правильный импорт
+
+from src.search_counter import count_operations_by_category_extended
 
 
-class TestProcessBankSearch100Coverage(unittest.TestCase):
+class TestCountOperationsByCategoryExtended(unittest.TestCase):
 
-    def test_basic_search_success(self):
-        """Тест базового успешного поиска - ИСПРАВЛЕННЫЙ"""
+    def test_basic_category_counting(self):
+        """Тест базового подсчета по категориям"""
         data = [
-            {'description': 'Кофе Starbucks', 'amount': 100},
-            {'description': 'Обед в кафе', 'amount': 200},
-            {'description': 'Покупка в магазине', 'amount': 300}
+            {"category": "food", "amount": 100},
+            {"category": "transport", "amount": 200},
+            {"category": "food", "amount": 300},
+            {"category": "entertainment", "amount": 400},
         ]
 
-        # "кафе" есть только в 'Обед в кафе'
-        result = process_bank_search(data, 'кафе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 1)  # ИСПРАВЛЕНО: был 2, теперь 1
-        self.assertEqual(result[0]['description'], 'Обед в кафе')
-
-    def test_case_insensitive_search(self):
-        """Тест поиска без учета регистра"""
-        data = [
-            {'description': 'COFFEE SHOP', 'amount': 100},
-            {'description': 'coffee machine', 'amount': 200},
-            {'description': 'TEA HOUSE', 'amount': 300}
-        ]
-
-        result = process_bank_search(data, 'Coffee')
-
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]['description'], 'COFFEE SHOP')
-        self.assertEqual(result[1]['description'], 'coffee machine')
-
-    def test_regex_search(self):
-        """Тест поиска с использованием регулярных выражений"""
-        data = [
-            {'description': 'Payment #12345', 'amount': 100},
-            {'description': 'Transfer #ABCDE', 'amount': 200},
-            {'description': 'Refund #67890', 'amount': 300}
-        ]
-
-        result = process_bank_search(data, r'#\d+')
-
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]['description'], 'Payment #12345')
-        self.assertEqual(result[1]['description'], 'Refund #67890')
-
-    def test_no_matches_found(self):
-        """Тест когда совпадений не найдено"""
-        data = [
-            {'description': 'Ресторан', 'amount': 100},
-            {'description': 'Супермаркет', 'amount': 200}
-        ]
-
-        result = process_bank_search(data, 'кофе')
-
-        self.assertEqual(result, [])
+        expected = {"food": 2, "transport": 1, "entertainment": 1}
+        self.assertEqual(result, expected)
 
     def test_empty_data_list(self):
         """Тест с пустым списком данных"""
-        result = process_bank_search([], 'кофе')
+        result = count_operations_by_category_extended([])
+        self.assertEqual(result, {})
 
-        self.assertEqual(result, [])
-
-    def test_empty_search_string(self):
-        """Тест с пустой строкой поиска"""
+    def test_operations_without_category(self):
+        """Тест операций без поля category"""
         data = [
-            {'description': 'Кофе', 'amount': 100}
+            {"amount": 100},
+            {"category": "food", "amount": 200},
+            {"currency": "USD"},
+            {"category": "", "amount": 300},
         ]
 
-        result = process_bank_search(data, '')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(result, [])
+        expected = {"food": 1, "other": 3}
+        self.assertEqual(result, expected)
 
-    def test_none_search_string(self):
-        """Тест с None строкой поиска"""
+    def test_default_category_usage(self):
+        """Тест использования категории по умолчанию"""
+        data = [{"amount": 100}, {"category": "food", "amount": 200}, {"category": "", "amount": 300}]
+
+        result = count_operations_by_category_extended(data, default_category="other")
+
+        expected = {"food": 1, "other": 2}
+        self.assertEqual(result, expected)
+
+    def test_case_sensitivity(self):
+        """Тест чувствительности к регистру категорий"""
         data = [
-            {'description': 'Кофе', 'amount': 100}
+            {"category": "FOOD", "amount": 100},
+            {"category": "food", "amount": 200},
+            {"category": "Food", "amount": 300},
         ]
 
-        result = process_bank_search(data, None)
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(result, [])
+        expected = {"FOOD": 1, "food": 1, "Food": 1}
+        self.assertEqual(result, expected)
 
-    def test_operations_without_description(self):
-        """Тест операций без поля description"""
+    def test_none_category_values(self):
+        """Тест с None значениями категорий"""
         data = [
-            {'amount': 100},  # нет description
-            {'description': 'Кофе', 'amount': 200},
-            {'currency': 'USD'}  # нет description
+            {"category": None, "amount": 100},
+            {"category": "food", "amount": 200},
+            {"category": "transport", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['description'], 'Кофе')
+        # None категории попадают в "other" по умолчанию
+        expected = {"food": 1, "transport": 1, "other": 1}
+        self.assertEqual(result, expected)
 
-    def test_description_not_string(self):
-        """Тест когда description не строка"""
+    def test_single_category_all_operations(self):
+        """Тест когда все операции одной категории"""
         data = [
-            {'description': 12345, 'amount': 100},  # число
-            {'description': None, 'amount': 200},  # None
-            {'description': ['кофе', 'кафе'], 'amount': 300},  # список
-            {'description': 'Кофе Starbucks', 'amount': 400}  # строка
+            {"category": "food", "amount": 100},
+            {"category": "food", "amount": 200},
+            {"category": "food", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['description'], 'Кофе Starbucks')
+        expected = {"food": 3}
+        self.assertEqual(result, expected)
 
-    def test_special_characters_in_search(self):
-        """Тест специальных символов в поиске"""
+    def test_mixed_data_types_in_category(self):
+        """Тест с разными типами данных в поле category"""
         data = [
-            {'description': 'Café Paris', 'amount': 100},
-            {'description': 'Price $100.50', 'amount': 200},
-            {'description': 'Order #123-ABC', 'amount': 300}
+            {"category": "food", "amount": 100},
+            {"category": "123", "amount": 200},
+            {"category": "", "amount": 300},
+            {"category": None, "amount": 400},
         ]
 
-        result1 = process_bank_search(data, 'Café')
-        result2 = process_bank_search(data, r'\$100\.50')
-        result3 = process_bank_search(data, r'#123-ABC')
+        result = count_operations_by_category_extended(data, default_category="other")
 
-        self.assertEqual(len(result1), 1)
-        self.assertEqual(len(result2), 1)
-        self.assertEqual(len(result3), 1)
+        # Число 123 конвертируется в строку "123"
+        expected = {"food": 1, "123": 1, "other": 2}
+        self.assertEqual(result, expected)
 
-    def test_multiple_matches_in_description(self):
-        """Тест когда слово 'кофе' есть в нескольких описаниях"""
+    def test_special_characters_in_category(self):
+        """Тест специальных символов в категориях"""
         data = [
-            {'description': 'Утренний кофе', 'amount': 100},
-            {'description': 'Кофе с друзьями', 'amount': 200},
-            {'description': 'Обед в кафе', 'amount': 300}  # тут "кафе", а не "кофе"
+            {"category": "food & drinks", "amount": 100},
+            {"category": "transport-urban", "amount": 200},
+            {"category": "shopping@online", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 2)  # Только первые две
-        self.assertEqual(result[0]['description'], 'Утренний кофе')
-        self.assertEqual(result[1]['description'], 'Кофе с друзьями')
+        expected = {"food & drinks": 1, "transport-urban": 1, "shopping@online": 1}
+        self.assertEqual(result, expected)
 
-    def test_exact_match_required(self):
-        """Тест что поиск ищет подстроку, а не точное совпадение"""
+    def test_unicode_characters_in_category(self):
+        """Тест Unicode символов в категориях"""
         data = [
-            {'description': 'Кофе Starbucks', 'amount': 100},
-            {'description': 'Кофе', 'amount': 200},
-            {'description': 'Кафешка', 'amount': 300}  # "кафе" != "кофе"
+            {"category": "еда", "amount": 100},
+            {"category": "транспорт", "amount": 200},
+            {"category": "развлечения", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 2)  # Первые две
-        self.assertEqual(result[0]['description'], 'Кофе Starbucks')
-        self.assertEqual(result[1]['description'], 'Кофе')
+        expected = {"еда": 1, "транспорт": 1, "развлечения": 1}
+        self.assertEqual(result, expected)
 
-    def test_mixed_data_types(self):
-        """Тест с разными типами данных в операциях"""
+    def test_empty_string_default_category(self):
+        """Тест с пустой строкой как категорией по умолчанию"""
         data = [
-            {'description': 'Кофе', 'amount': 100, 'currency': 'RUB', 'date': '2024-01-01'},
-            {'description': 'Обед', 'amount': 200.50, 'currency': 'USD', 'status': 'completed'},
-            {'description': 'Ужин', 'amount': 300, 'metadata': {'type': 'food'}}
+            {"amount": 100},
+            {"category": "food", "amount": 200},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data, default_category="")
 
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['description'], 'Кофе')
-        self.assertEqual(result[0]['amount'], 100)
+        expected = {"": 1, "food": 1}
+        self.assertEqual(result, expected)
 
-    @patch('src.search_counter.re.search')
-    def test_re_search_called_correctly(self, mock_search):
-        """Тест что re.search вызывается правильно"""
-        mock_search.return_value = True  # Всегда возвращаем True
-
-        data = [{'description': 'Тест', 'amount': 100}]
-        process_bank_search(data, 'тест')
-
-        # Проверяем что re.search был вызван с правильными аргументами
-        mock_search.assert_called_once_with('тест', 'Тест', re.IGNORECASE)
-
-    def test_performance_with_large_data(self):
+    def test_large_dataset_performance(self):
         """Тест производительности с большим объемом данных"""
-        # Создаем 1000 операций
-        data = [{'description': f'Операция {i}', 'amount': i} for i in range(1000)]
-        # Добавляем несколько операций с искомым словом
-        data.extend([
-            {'description': 'Кофе утром', 'amount': 1001},
-            {'description': 'Кофе вечером', 'amount': 1002}
-        ])
+        # Создаем 1000 операций с разными категориями
+        data = []
+        categories = ["food", "transport", "entertainment", "shopping", "utilities"]
 
-        result = process_bank_search(data, 'кофе')
+        for i in range(1000):
+            category = categories[i % len(categories)]
+            data.append({"category": category, "amount": i})
 
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]['description'], 'Кофе утром')
-        self.assertEqual(result[1]['description'], 'Кофе вечером')
+        result = count_operations_by_category_extended(data)
 
+        # Каждая категория должна встречаться 200 раз (1000 / 5)
+        expected_counts = {category: 200 for category in categories}
+        self.assertEqual(result, expected_counts)
 
-class TestProcessBankSearchEdgeCases(unittest.TestCase):
-
-    def test_unicode_characters(self):
-        """Тест Unicode символов"""
+    def test_complex_operations_structure(self):
+        """Тест со сложной структурой операций"""
         data = [
-            {'description': 'Café ☕', 'amount': 100},
-            {'description': 'Ресторан 🍽️', 'amount': 200}
+            {"category": "food", "amount": 100, "currency": "USD", "date": "2024-01-01"},
+            {"category": "transport", "amount": 200.50, "description": "Bus ticket"},
+            {"category": "food", "amount": 300, "metadata": {"type": "restaurant"}},
+            {"amount": 400, "notes": "No category provided"},
         ]
 
-        result = process_bank_search(data, '☕')
+        result = count_operations_by_category_extended(data, default_category="uncategorized")
 
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['description'], 'Café ☕')
+        expected = {"food": 2, "transport": 1, "uncategorized": 1}
+        self.assertEqual(result, expected)
 
-    def test_very_long_description(self):
-        """Тест очень длинного описания"""
-        long_description = 'Очень длинное описание операции ' * 10 + 'кофе в конце'
-        data = [{'description': long_description, 'amount': 100}]
+    def test_no_default_category_parameter(self):
+        """Тест без указания default_category параметра"""
+        data = [{"category": "food", "amount": 100}, {"amount": 200}]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
 
-        self.assertEqual(len(result), 1)
+        expected = {"food": 1, "other": 1}
+        self.assertEqual(result, expected)
 
-    def test_search_pattern_at_different_positions(self):
-        """Тест поиска в разных позициях строки"""
+
+class TestCountOperationsByCategoryExtendedEdgeCases(unittest.TestCase):
+
+    def test_only_operations_without_category(self):
+        """Тест когда ни у одной операции нет категории"""
         data = [
-            {'description': 'кофе в начале', 'amount': 100},
-            {'description': 'в середине кофе тоже', 'amount': 200},
-            {'description': 'в конце кофе', 'amount': 300}
+            {"amount": 100},
+            {"description": "Test", "amount": 200},
+            {"currency": "USD", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
+        self.assertEqual(result, {"other": 3})
 
-        self.assertEqual(len(result), 3)
-
-    def test_empty_string_description(self):
-        """Тест с пустой строкой в description"""
+    def test_only_operations_with_empty_category(self):
+        """Тест когда у всех операций пустая категория"""
         data = [
-            {'description': '', 'amount': 100},
-            {'description': 'Кофе', 'amount': 200}
+            {"category": "", "amount": 100},
+            {"category": "", "amount": 200},
+            {"category": "", "amount": 300},
         ]
 
-        result = process_bank_search(data, 'кофе')
+        result = count_operations_by_category_extended(data)
+        self.assertEqual(result, {"other": 3})
 
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['description'], 'Кофе')
+    def test_mixed_none_and_empty_category(self):
+        """Тест смеси None и пустых категорий"""
+        data = [
+            {"category": None, "amount": 100},
+            {"category": "", "amount": 200},
+            {"category": "food", "amount": 300},
+        ]
+
+        result = count_operations_by_category_extended(data)
+        expected = {"food": 1, "other": 2}
+        self.assertEqual(result, expected)
+
+    def test_very_long_category_names(self):
+        """Тест очень длинных названий категорий"""
+        long_category = "Очень длинное название категории " * 10
+        data = [
+            {"category": long_category, "amount": 100},
+            {"category": "short", "amount": 200},
+        ]
+
+        result = count_operations_by_category_extended(data)
+        expected = {long_category: 1, "short": 1}
+        self.assertEqual(result, expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Запуск всех тестов
     unittest.main(verbosity=2)

@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Callable
+from typing import Any
 
 from src.masks import get_mask_account, get_mask_card_number
 
 
-def get_date(date_str: str) -> str:
+def get_date(date_str: str) -> Any:
     """Функция форматирования даты с поддержкой разных форматов"""
     if not date_str:
         return date_str
@@ -25,10 +25,12 @@ def get_date(date_str: str) -> str:
     return date_str
 
 
-def mask_account_card(account_info: str) -> str | Callable[[str], str]:
+def mask_account_card(account_info: str) -> Any:
     """Функция считывает информацию о счете\карте маскируя их по разному"""
+    if not account_info:
+        return ""
     if "счет" in account_info.lower() or account_info.lower().startswith("счет"):
         # Используем функцию для маскировки счета
         return get_mask_account(account_info)
     else:
-        return get_mask_card_number
+        return get_mask_card_number(account_info)

@@ -1,29 +1,31 @@
-from typing import List, Dict, Any
-import re
+from typing import Any, Dict, List
 
 
-def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[str, Any]]:
+def count_operations_by_category_extended(
+    data: List[Dict[str, Any]], default_category: str = "other"
+) -> Dict[str, int]:
     """
-    Фильтрует список банковских операций по строке поиска в описании.
-    Использует регулярные выражения для поиска подстроки в описании.
+    Подсчитывает количество операций по категориям с расширенной логикой.
 
     Args:
         data: Список словарей с данными о банковских операциях
-        search: Строка для поиска в описании операций
+        default_category: Категория для операций без указанной категории
 
     Returns:
-        List[Dict[str, Any]]: Отфильтрованный список операций,
-                             где в описании найдена строка поиска
+        Dict[str, int]: Словарь с количеством операций по категориям
     """
-    if not data or not search:
-        return []
+    if not data:
+        return {}
 
-    filtered_operations = []
+    category_count = {}
 
     for operation in data:
-        description = operation.get('description')
-        if isinstance(description, str):
-            if re.search(search, description, re.IGNORECASE):
-                filtered_operations.append(operation)
+        category = operation.get("category")
 
-    return filtered_operations
+        # Если категория не указана, используем категорию по умолчанию
+        if category is None or category == "":
+            category = default_category
+
+        category_count[category] = category_count.get(category, 0) + 1
+
+    return category_count

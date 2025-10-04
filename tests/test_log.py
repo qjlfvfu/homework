@@ -1,12 +1,14 @@
 import os
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, mock_open, MagicMock
-from src.decorators import log, write_log, convert_to_html, init_html_log, close_html_log
+
+from src.decorators import close_html_log, convert_to_html, init_html_log, log, write_log
 
 
 def test_write_log_console():
     """Тест write_log с выводом в консоль (filename=None)"""
-    with patch('builtins.print') as mock_print:
+    with patch("builtins.print") as mock_print:
         write_log("Тестовое сообщение", filename=None)
         mock_print.assert_called_once_with("Тестовое сообщение")
 
@@ -15,7 +17,7 @@ def test_write_log_file():
     """Тест write_log с записью в файл"""
     test_message = "Тестовое сообщение для файла"
 
-    with patch('builtins.open', mock_open()) as mock_file:
+    with patch("builtins.open", mock_open()) as mock_file:
         write_log(test_message, filename="test_log.html")
 
         # Проверяем что файл был открыт для записи
@@ -29,32 +31,32 @@ def test_write_log_file():
 def test_convert_to_html_error():
     """Тест convert_to_html для сообщений об ошибке"""
     result = convert_to_html("Ошибка: что-то пошло не так")
-    assert 'color: red' in result
+    assert "color: red" in result
     assert "Ошибка: что-то пошло не так" in result
 
 
 def test_convert_to_html_success():
     """Тест convert_to_html для успешных сообщений"""
     result = convert_to_html("Успешно завершено")
-    assert 'color: green' in result
+    assert "color: green" in result
 
 
 def test_convert_to_html_start():
     """Тест convert_to_html для сообщений о начале"""
     result = convert_to_html("Начало выполнения функции")
-    assert 'color: blue' in result
+    assert "color: blue" in result
 
 
 def test_convert_to_html_default():
     """Тест convert_to_html для обычных сообщений"""
     result = convert_to_html("Обычное сообщение")
-    assert 'color:' not in result
+    assert "color:" not in result
     assert "<p>Обычное сообщение</p>" in result
 
 
 def test_init_html_log():
     """Тест init_html_log"""
-    with patch('builtins.open', mock_open()) as mock_file:
+    with patch("builtins.open", mock_open()) as mock_file:
         init_html_log("test_init.html")
 
         mock_file.assert_called_once_with("test_init.html", "w", encoding="utf-8")
@@ -66,7 +68,7 @@ def test_init_html_log():
 
 def test_close_html_log():
     """Тест close_html_log"""
-    with patch('builtins.open', mock_open()) as mock_file:
+    with patch("builtins.open", mock_open()) as mock_file:
         close_html_log("test_close.html")
 
         mock_file.assert_called_once_with("test_close.html", "a", encoding="utf-8")
@@ -82,7 +84,7 @@ def test_log_decorator_with_exception():
     def failing_function():
         raise ValueError("Тестовая ошибка")
 
-    with patch('src.decorators.write_log') as mock_write_log:
+    with patch("src.decorators.write_log") as mock_write_log:
         try:
             failing_function()
         except ValueError:
@@ -102,7 +104,7 @@ def test_log_decorator_with_arguments():
     def sample_function(x, y):
         return x + y
 
-    with patch('src.decorators.write_log') as mock_write_log:
+    with patch("src.decorators.write_log") as mock_write_log:
         result = sample_function(2, 3)
 
         assert result == 5
@@ -118,7 +120,7 @@ def test_log_decorator_with_custom_filename():
     def test_func():
         return "result"
 
-    with patch('src.decorators.write_log') as mock_write_log:
+    with patch("src.decorators.write_log") as mock_write_log:
         test_func()
 
         # Проверяем что write_log вызывался с правильным filename
@@ -136,11 +138,12 @@ def test_log_decorator_direct_call():
     # Прямой вызов декоратора
     decorated = log(filename=None)(test_function)
 
-    with patch('src.decorators.write_log') as mock_write_log:
+    with patch("src.decorators.write_log") as mock_write_log:
         result = decorated()
 
         assert result == "test"
         mock_write_log.assert_called()
+
 
 def test_log_decorator_console_output(capsys):
     """Test log decorator console output (filename=None)"""

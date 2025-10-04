@@ -1,19 +1,70 @@
+import os
 import re
-from src.processing import filter_by_state, sort_by_date, process_bank_operations
-from src.search_counter import process_bank_search
-from src.reader_scv_xlsx_files import reader_excel, reader_csv
+from typing import Any
+
+from src.process_bank_search import process_bank_search
+from src.processing import filter_by_state, sort_by_date
+from src.reader_scv_xlsx_files import reader_csv, reader_excel
 from src.utils import load_transactions
+
+
+def process_bank_operations(transactions: list, categories: list) -> dict:
+    """
+    Подсчитывает операции по категориям на основе ключевых слов в описании.
+
+    Args:
+        transactions: Список транзакций
+        categories: Список категорий для поиска
+
+    Returns:
+        dict: Статистика по категориям
+    """
+    # Инициализируем статистику для всех категорий и "другие"
+    category_stats = {category: 0 for category in categories}
+    category_stats["другие"] = 0
+
+    category_keywords = {
+        "перевод": ["перевод", "transfer", "перечисление"],
+        "оплата": ["оплата", "payment", "платеж"],
+        "покупка": ["покупка", "purchase", "buy", "купить"],
+        "снятие": ["снятие", "withdrawal", "cash", "наличные"],
+        "пополнение": ["пополнение", "deposit", "пополнить"],
+        "возврат": ["возврат", "refund", "возврат средств"],
+    }
+
+    for transaction in transactions:
+        description = transaction.get("description", "")
+        if not isinstance(description, str) or not description.strip():
+            category_stats["другие"] += 1
+            continue
+
+        description = description.lower()
+        category_found = False
+
+        for category, keywords in category_keywords.items():
+            if any(keyword in description for keyword in keywords):
+                category_stats[category] += 1
+                category_found = True
+                break
+
+        if not category_found:
+            category_stats["другие"] += 1
+
+    # Убираем категории с нулевым количеством операций
+    return {k: v for k, v in category_stats.items() if v > 0}
 
 
 def main():
     """Основная функция программы для работы с банковскими транзакциями"""
-    print("""
+    print(
+        """
     Программа: Привет! Добро пожаловать в программу работы с банковскими транзакциями.
     Выберите пункт меню:
     1. Получить информацию о транзакциях из JSON-файла
     2. Получить информацию о транзакциях из CSV-файла
     3. Получить информацию о транзакциях из XLSX-файла
-    """)
+    """
+    )
 
     # Выбираем тип файла для транзакции
     choice = input("Выберите пункт меню: ")
@@ -22,16 +73,16 @@ def main():
     if choice not in ["1", "2", "3"]:
         print("Неверный ввод. Завершение программы.")
         return
-
-    if choice == "1":
-        print("Для обработки выбран JSON-файл")
-        result = load_transactions("transactions.json")
-    elif choice == "2":
-        print("Для обработки выбран CSV-файл")
-        result = reader_csv("transactions.csv")
-    elif choice == "3":
-        print("Для обработки выбран XLSX-файл")
-        result = reader_excel("transactions.xlsx")
+    try:
+        if choice == "1":
+            result = load_transactions("operations.json")  # в корне проекта
+        elif choice == "2":
+            result = reader_csv("transactions.csv")  # в корне проекта
+        elif choice == "3":
+            result = reader_excel("transactions.xlsx")  # в корне проекта
+    except Exception as e:
+        print(f"Ошибка при загрузке данных: {e}")
+        return
 
     # Проверяем результат
     if not result:
@@ -44,10 +95,12 @@ def main():
     states = ["EXECUTED", "CANCELED", "PENDING"]
 
     while True:
-        print("""
+        print(
+            """
     Введите статус, по которому необходимо выполнить фильтрацию.
     Доступные для фильтровки статусы: EXECUTED, CANCELED, PENDING
-        """)
+        """
+        )
         state_input = input("Статус: ").upper()
 
         if state_input in states:
@@ -73,11 +126,11 @@ def main():
         print("\nОтсортировать операции по дате? Да/Нет")
         date_input = input("Да/Нет: ").upper()
 
-        if date_input in ["ДА", "НЕТ"]:
+        if date_input in ["ДА", "YES", "Y", "НЕТ", "NO", "N"]:
             break
         print("Пожалуйста введите Да или Нет")
 
-    if date_input == "ДА":
+    if date_input in ["ДА", "YES", "Y"]:
         while True:
             print("\nОтсортировать по возрастанию или по убыванию?")
             sorting_input = input("по возрастанию/по убыванию: ").lower()
@@ -96,12 +149,12 @@ def main():
         print("\nВыводить только рублевые транзакции? Да/Нет")
         transaction_input = input("Да/Нет: ").upper()
 
-        if transaction_input in ["ДА", "НЕТ"]:
+        if transaction_input in ["ДА", "YES", "Y", "НЕТ", "NO", "N"]:
             break
         print("Пожалуйста введите Да или Нет")
 
-    if transaction_input == "ДА":
-        rub_transactions = [t for t in final_transactions if t.get('currency') == 'RUB']
+    if transaction_input in ["ДА", "YES", "Y"]:
+        rub_transactions = [t for t in final_transactions if t.get("currency") == "RUB"]
         if not rub_transactions:
             print("Не найдено рублевых транзакций.")
             return
@@ -113,11 +166,11 @@ def main():
         print("\nОтфильтровать список транзакций по определенному слову в описании? Да/Нет")
         transaction_word_input = input("Да/Нет: ").upper()
 
-        if transaction_word_input in ["ДА", "НЕТ"]:
+        if transaction_word_input in ["ДА", "YES", "Y", "НЕТ", "NO", "N"]:
             break
         print("Пожалуйста введите Да или Нет")
 
-    if transaction_word_input == "ДА":
+    if transaction_word_input in ["ДА", "YES", "Y"]:
         print("\nВведите слово для поиска в описании:")
         filter_word = input("Слово: ").strip()
 
@@ -134,7 +187,7 @@ def main():
         else:
             print("Слово для поиска не введено.")
 
-    # Подсчет категорий операций с использованием process_bank_operations
+    # Подсчет категорий операций
     print("\n" + "=" * 50)
     print("ПОДСЧЕТ ОПЕРАЦИЙ ПО КАТЕГОРИЯМ")
     print("=" * 50)
@@ -142,10 +195,12 @@ def main():
     categories = ["перевод", "оплата", "покупка", "снятие", "пополнение", "возврат"]
     category_stats = process_bank_operations(final_transactions, categories)
 
-    print("Статистика по категориям операций:")
-    for category, count in category_stats.items():
-        if count > 0:
+    if category_stats:
+        print("Статистика по категориям операций:")
+        for category, count in category_stats.items():
             print(f"  {category.capitalize()}: {count} операций")
+    else:
+        print("Не удалось определить категории операций")
 
     # Вывод финальных результатов
     print("\n" + "=" * 50)
@@ -158,11 +213,11 @@ def main():
         print(f"Всего банковских операций в выборке: {len(final_transactions)}\n")
 
         for i, transaction in enumerate(final_transactions, 1):
-            date = transaction.get('date', 'Дата не указана')
-            description = transaction.get('description', 'Описание отсутствует')
-            amount = transaction.get('amount', '')
-            currency = transaction.get('currency', '')
-            status = transaction.get('state', '')
+            date = transaction.get("date", "Дата не указана")
+            description = transaction.get("description", "Описание отсутствует")
+            amount = transaction.get("amount", "")
+            currency = transaction.get("currency", "")
+            status = transaction.get("state", "")
 
             print(f"{i}. {date} - {description}")
             print(f"   Сумма: {amount} {currency}")
@@ -173,5 +228,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
