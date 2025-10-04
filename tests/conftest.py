@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
+# Фикстуры для тестов
+
 
 @pytest.fixture
 def valid_date_formats() -> List[Tuple[str, str]]:
