@@ -1,3 +1,7 @@
+import json
+
+from src.utils import load_transactions
+
 
 class Product:
     name = str
@@ -27,7 +31,22 @@ class Category:
 
 
 if __name__=="__main__":
-    print(Product)
-
-
-
+    result = load_transactions("products.json")
+    products = []
+    for item in result:
+        product = Product(
+            name=item['name'],
+            description=item['description'],
+            quantity=item['quantity'],
+             price=item['price']
+                )
+        products.append(product)
+        print(products)
+        categories = []
+        for category in result:
+            product = Category(
+                 name=item['name'],
+                description=item['description'],
+                 products=item['products']
+            )
+            print(categories)

@@ -18,7 +18,7 @@ logger.addHandler(file_handler)
 
 def load_transactions(file_path: str) -> List[Dict]:
     """
-    Загружает данные о финансовых транзакциях из JSON-файла.
+    Загружает данные из JSON-файла.
 
     Args:
         file_path (str): Путь до JSON-файла
