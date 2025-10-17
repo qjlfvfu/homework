@@ -1,6 +1,11 @@
 from typing import Any, Dict, List, Tuple
+from unittest.mock import patch
 
 import pytest
+
+from src.classification import Category, Product
+
+# Фикстуры для тестов
 
 
 @pytest.fixture
@@ -57,3 +62,31 @@ def test_operations() -> List[Dict[str, Any]]:
 def account_data() -> List[str]:
     """Фикстура с данными счетов"""
     return ["Счет 1234567890123456", "Счет 9876543210987654", "Visa 1234567812345678"]
+
+
+@pytest.fixture
+def currency_data() -> List[Dict[str, Any]]:
+    """Фикстура с данными транзакций"""
+    return [
+        {"amount": "1300", "from_curr": "RUB", "to_currs": "USD", "date": "2023-02-04"},
+        {"amount": "600", "from_curr": "RUB", "to_currs": "USD", "date": "2011-09-11"},
+        {"amount": "56473890", "from_curr": "RUB", "to_currs": "USD", "date": "2022-07-04"},
+    ]
+
+
+@pytest.fixture
+def mock_requests():
+    """Фикстура возвращает мок для requests"""
+    with patch("requests.get") as mock_get:
+        yield mock_get
+
+
+@pytest.fixture
+def list_category():
+    """Фикстура возвращает Список продуктов в категории"""
+    return Category("Мясо", [" Тофик", "Бобик", "Вася"], "Грустно но вкусно")
+
+
+@pytest.fixture
+def sausage():
+    return Product("Колбаса", "Краковская колбаса прямо из под собаки", 25, 1.40)
