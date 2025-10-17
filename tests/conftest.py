@@ -3,6 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
+from src.classification import Category, Product
+
+
 # Фикстуры для тестов
 
 
@@ -77,3 +80,16 @@ def mock_requests():
     """Фикстура возвращает мок для requests"""
     with patch("requests.get") as mock_get:
         yield mock_get
+
+
+@pytest.fixture
+def list_category():
+    """Фикстура возвращает Список продуктов в категории"""
+    return Category(
+        'Мясо' ,[" Тофик",
+        "Бобик",
+        "Вася"], "Грустно но вкусно")
+
+@pytest.fixture
+def sausage():
+    return Product('Колбаса','Краковская колбаса прямо из под собаки',25,1.40)
